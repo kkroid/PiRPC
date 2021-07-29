@@ -2,7 +2,7 @@
 // Created by Will Zhang on 2021/7/12.
 //
 #include "Client.h"
-
+#include "Heartbeat.h"
 #include <utility>
 
 namespace PiRPC {

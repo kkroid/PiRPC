@@ -8,7 +8,7 @@
 #include "json.hpp"
 #include "spdlog/spdlog.h"
 #include <buffer.h>
-#include "MessageGenerator.h"
+#include "MsgGen.h"
 
 namespace PiRPC {
     class MessageProcessor {

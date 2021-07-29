@@ -9,8 +9,13 @@
 
 namespace PiRPC {
     class Stream2Package {
+        const static int32_t HEADER_SIZE = sizeof(int32_t);
     public:
         static void Do(const OnNewMsgReceived &onNewMsgReceived, evpp::Buffer *buffer) {
+            if (buffer->size() < HEADER_SIZE) {
+                spdlog::warn("收到的数据比头部还小，等待。。。");
+                return;
+            }
             // 拆包分包处理
             int32_t realDataSize = buffer->PeekInt32();
             int32_t headerSize = sizeof(realDataSize);

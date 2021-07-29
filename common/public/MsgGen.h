@@ -18,7 +18,7 @@
 #define BASE_CAMERA_MSG_FORMAT R"({"cmd":%d,"param":%d})"
 
 namespace PiRPC {
-    class MessageGenerator {
+    class MsgGen {
 
     public:
         template<typename ... Args>
@@ -30,21 +30,21 @@ namespace PiRPC {
             return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
         }
 
-        static std::string gen(int type, const std::string &payload) {
+        static std::string msg(int type, const std::string &payload) {
             static Snowflake snowflake;
             return format(BASE_MSG_FORMAT, snowflake.nextId(), type, payload.c_str());
         }
 
-        static std::string genCamera(int cmd, int param) {
-            return gen(TYPE_CAMERA_CTRL, format(BASE_CAMERA_MSG_FORMAT, cmd, param));
+        static std::string camera(int cmd, int param) {
+            return msg(TYPE_CAMERA_CTRL, format(BASE_CAMERA_MSG_FORMAT, cmd, param));
         }
 
-        static std::string genServo(int servo, int delta) {
-            return gen(TYPE_SERVO_CTRL, format(BASE_SERVO_MOTOR_MSG_FORMAT, servo, delta));
+        static std::string servo(int servo, int delta) {
+            return msg(TYPE_SERVO_CTRL, format(BASE_SERVO_MOTOR_MSG_FORMAT, servo, delta));
         }
 
-        static std::string genMoto(int key) {
-            return gen(TYPE_MOTOR_CTRL, format(BASE_SERVO_MOTOR_MSG_FORMAT, key));
+        static std::string motor(int key) {
+            return msg(TYPE_MOTOR_CTRL, format(BASE_SERVO_MOTOR_MSG_FORMAT, key));
         }
     };
 }

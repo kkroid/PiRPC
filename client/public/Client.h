@@ -81,6 +81,13 @@ namespace PiRPC {
             // spdlog::info("send msg:{}", msg);
             Send(msg.data(), msg.length());
         }
+
+        void heartbeat() {
+            if (client && client->conn()->IsConnected()) {
+                client->conn()->Send("");
+                spdlog::info("发送心跳包");
+            }
+        }
     };
 }
 

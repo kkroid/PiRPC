@@ -46,12 +46,13 @@ namespace PiRPC {
         UInt64 nextId() {
             return GetDistributedId();
         }
-
-    private:
+        
         static UInt64 GetTimeStamp() {
             auto t = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now());
             return t.time_since_epoch().count();
         }
+
+    private:
 
         static UInt64 tilNextMillis(UInt64 lastTimestamp) {
             UInt64 timestamp = GetTimeStamp();
