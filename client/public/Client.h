@@ -12,6 +12,7 @@
 #include <tcp_conn.h>
 #include "Stream2Package.h"
 #include <utility>
+// #include <Heartbeat.h>
 #include "PiRPCCallbacks.h"
 
 
@@ -24,12 +25,13 @@ namespace PiRPC {
         evpp::EventLoop *loop = nullptr;
         PiRPC::OnNewMsgReceived _onNewMsgReceived = nullptr;
         PiRPC::OnConnectionChanged _onConnectionChanged = nullptr;
+        bool heartbeat_ = false;
     public:
 
         Client() = default;
 
         ~Client() {
-            spdlog::info("~Client");
+            spdlog::info("~Client:{}", name);
             delete loop;
             delete client;
         }
@@ -50,7 +52,7 @@ namespace PiRPC {
         // 拒绝拷贝赋值
         Client &operator=(const Client &rhs) = delete;
 
-        void init(std::string address, std::string clientName);
+        void init(std::string address, std::string clientName, bool heartbeat = false);
 
         void setOnConnectionChangedCallback(const PiRPC::OnConnectionChanged &onConnectionChanged) {
             _onConnectionChanged = onConnectionChanged;
@@ -64,17 +66,10 @@ namespace PiRPC {
 
         void disconnect();
 
+        void Send(const void *d, size_t dlen);
+
         void Send(const char *s) {
             Send(s, strlen(s));
-        }
-
-        void Send(const void *d, size_t dlen) {
-            if (client && client->conn()->IsConnected()) {
-                evpp::Buffer buffer;
-                buffer.AppendInt32(dlen);
-                buffer.Append(d, dlen);
-                client->conn()->Send(&buffer);
-            }
         }
 
         void Send(const std::string &msg) {

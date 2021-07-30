@@ -5,32 +5,24 @@
 #ifndef PITWINSCLIENT_HEARTBEAT_H
 #define PITWINSCLIENT_HEARTBEAT_H
 
-#include <blockingconcurrentqueue.h>
+#include <Client.h>
 #include "Snowflak.h"
 #include "spdlog/spdlog.h"
-#include "ctpl_stl.h"
 
 namespace PiRPC {
 
     using namespace std;
-    using namespace std::chrono;
 
     class Heartbeat {
     private:
         UInt64 lastHeartbeatTime = 0UL;
-        UInt64 INTERVAL = 5000UL;
-        ctpl::thread_pool *threadPool = nullptr;
-        moodycamel::BlockingConcurrentQueue<bool> heartbeatQueue;
     public:
+        constexpr static const double INTERVAL = 5.0;
+
         Heartbeat() = default;
 
         ~Heartbeat() {
             spdlog::info("~Heartbeat");
-            if (threadPool) {
-                threadPool->clear_queue();
-                delete threadPool;
-                threadPool = nullptr;
-            }
         }
 
         static Heartbeat &getInstance() {
@@ -44,30 +36,21 @@ namespace PiRPC {
         // 拒绝拷贝赋值
         Heartbeat &operator=(const Heartbeat &rhs) = delete;
 
-        void init() {
-            threadPool = new ctpl::thread_pool(1);
-            threadPool->push([this](int id) {
-                while (true) {
-                    bool heartbeat = true;
-                    if (heartbeatQueue.wait_dequeue_timed(heartbeat, milliseconds(INTERVAL))) {
-                        if (!heartbeat) {
-                            return;
-                        }
-                        // 其他地方已经发送了数据包，忽略本次心跳
-                        continue;
-                    } else {
-                        Client::getMsgClient().heartbeat();
-                    }
-                }
-            });
+        void refresh() {
+            lastHeartbeatTime = Snowflake::GetTimeStamp();
+            spdlog::trace("Refresh current heartbeat");
         }
 
         void beat() {
-            heartbeatQueue.enqueue(true);
-        }
-
-        void release() {
-            heartbeatQueue.enqueue(false);
+            UInt64 currentTime = Snowflake::GetTimeStamp();
+            UInt64 delta = currentTime - lastHeartbeatTime;
+            spdlog::trace("Current heartbeat:{}", delta);
+            if (delta < INTERVAL * 1000) {
+                spdlog::trace("Ignore current heartbeat");
+                return;
+            }
+            lastHeartbeatTime = currentTime;
+            Client::getMsgClient().heartbeat();
         }
     };
 }
