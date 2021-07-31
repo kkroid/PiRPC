@@ -12,20 +12,22 @@
 #include <tcp_conn.h>
 #include "Stream2Package.h"
 #include <utility>
-// #include <Heartbeat.h>
 #include "PiRPCCallbacks.h"
+#include "Snowflak.h"
 
 
 namespace PiRPC {
     class Client {
     private:
+        constexpr static const double INTERVAL = 5.0;
         std::string addr = "";
         std::string name = "Client";
         evpp::TCPClient *client = nullptr;
         evpp::EventLoop *loop = nullptr;
         PiRPC::OnNewMsgReceived _onNewMsgReceived = nullptr;
         PiRPC::OnConnectionChanged _onConnectionChanged = nullptr;
-        bool heartbeat_ = false;
+        bool _heartbeat = false;
+        UInt64 lastHeartbeatTime = 0UL;
     public:
 
         Client() = default;
@@ -52,7 +54,7 @@ namespace PiRPC {
         // 拒绝拷贝赋值
         Client &operator=(const Client &rhs) = delete;
 
-        void init(std::string address, std::string clientName, bool heartbeat = false);
+        void init(std::string address, std::string clientName, bool heartbeat_ = false);
 
         void setOnConnectionChangedCallback(const PiRPC::OnConnectionChanged &onConnectionChanged) {
             _onConnectionChanged = onConnectionChanged;
@@ -77,8 +79,22 @@ namespace PiRPC {
             Send(msg.data(), msg.length());
         }
 
+    private:
+        void refreshHeartbeat() {
+            lastHeartbeatTime = Snowflake::GetTimeStamp();
+            spdlog::trace("Refresh current heartbeat");
+        }
+
         void heartbeat() {
             if (client && client->conn()->IsConnected()) {
+                UInt64 currentTime = Snowflake::GetTimeStamp();
+                UInt64 delta = currentTime - lastHeartbeatTime;
+                spdlog::trace("Current heartbeat:{}", delta);
+                if (delta < INTERVAL * 1000) {
+                    spdlog::trace("Ignore current heartbeat");
+                    return;
+                }
+                lastHeartbeatTime = currentTime;
                 client->conn()->Send("");
                 spdlog::info("发送心跳包");
             }
