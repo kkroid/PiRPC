@@ -3,7 +3,9 @@
 //
 
 #include "Server.h"
+#include "json.hpp"
 
+using namespace nlohmann;
 
 namespace PiRPC {
     void Server::run() {
@@ -12,6 +14,15 @@ namespace PiRPC {
             server->Init();
             server->Start();
             loop->Run();
+        }
+    }
+
+    void Server::onPackageReceived(const TCPConnPtr &connPtr, Buffer *buf) {
+        spdlog::trace("{} server received a msg from:{}", name, connPtr->remote_addr());
+        std::string msg = std::string(buf->data(), buf->size());
+        json msgJson = MsgPretreater::getInstance().parse(msg);
+        if (_msgDispatcher) {
+            _msgDispatcher->dispatch(msgJson);
         }
     }
 

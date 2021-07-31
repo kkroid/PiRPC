@@ -2,8 +2,8 @@
 // Created by Will Zhang on 2021/7/15.
 //
 
-#ifndef PITWINS_MESSAGERECEIVER_H
-#define PITWINS_MESSAGERECEIVER_H
+#ifndef PITWINS_MESSAGEDISPATCHER_H
+#define PITWINS_MESSAGEDISPATCHER_H
 
 
 #include "MessageProcessor.h"
@@ -11,12 +11,12 @@
 using namespace evpp;
 
 namespace PiRPC {
-    class MessageReceiver {
+    class MessageDispatcher {
     protected:
         std::map<int, MessageProcessor *> processorMapping;
     public:
-        virtual void onNewMsgReceived(const std::string &msg) = 0;
+        virtual void dispatch(nlohmann::json msgJson) = 0;
     };
 }
 
-#endif //PITWINS_MESSAGERECEIVER_H
+#endif //PITWINS_MESSAGEDISPATCHER_H
