@@ -10,6 +10,6 @@
 namespace PiRPC {
     typedef std::function<void(const char *, size_t)> OnNewMsgReceived;
     typedef std::function<void(evpp::Buffer *)> OnPackageReceived;
-
+    typedef std::function<void(evpp::TCPConnPtr &)> OnHeartbeatTimeout;
     typedef std::function<void(const int)> OnConnectionChanged;
 }

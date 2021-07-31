@@ -81,7 +81,6 @@ namespace PiRPC {
                 return nullptr;
             }
             try {
-                spdlog::warn("json parse msg:[{}]", msg);
                 nlohmann::json obj = nlohmann::json::parse(msg);
                 return obj;
             } catch (std::exception &e) {

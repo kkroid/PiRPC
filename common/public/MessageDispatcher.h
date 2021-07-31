@@ -7,15 +7,17 @@
 
 
 #include "MessageProcessor.h"
+#include <tcp_conn.h>
 
 using namespace evpp;
+using namespace PiRPC;
 
 namespace PiRPC {
     class MessageDispatcher {
     protected:
         std::map<int, MessageProcessor *> processorMapping;
     public:
-        virtual void dispatch(nlohmann::json msgJson) = 0;
+        virtual void dispatch(const TCPConnPtr &connPtr, nlohmann::json msgJson) = 0;
     };
 }
 

@@ -94,6 +94,10 @@ public:
         msg_fn_ = cb;
     }
 
+    TCPConnPtr GetConnPtrById(uint64_t id) {
+        return connections_[id];
+    }
+
 public:
     const std::string& listen_addr() const {
         return listen_addr_;

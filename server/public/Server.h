@@ -13,11 +13,10 @@
 
 #include <utility>
 #include <PiRPCCallbacks.h>
-#include "slice.h"
 #include "buffer.h"
-#include "Stream2Package.h"
 #include "MsgPretreater.h"
 #include "MessageDispatcher.h"
+#include "Config.h"
 
 #define ADDR_MSG_SERVER "0.0.0.0:5556"
 #define ADDR_VIDEO_SERVER "0.0.0.0:5555"
@@ -36,9 +35,10 @@ namespace PiRPC {
         TCPServer *server = nullptr;
         EventLoop *loop = nullptr;
         std::shared_ptr<TCPConn> tcpConnPtr = nullptr;
-
+        std::map<uint64_t/*the id of the connection*/, UInt64> _connectionMap;
         OnConnectionChanged _onConnectionChanged = nullptr;
         MessageDispatcher *_msgDispatcher = nullptr;
+        OnHeartbeatTimeout _onHeartbeatTimeout;
     public:
 
         Server() = default;
@@ -73,6 +73,7 @@ namespace PiRPC {
                     spdlog::info("[{}]:Client {} Connected", name, connPtr->remote_addr());
                     // TODO 这里是新连接覆盖旧连接，将来改成支持多连接
                     tcpConnPtr = connPtr;
+                    _connectionMap[connPtr->id()] = Snowflake::GetTimeStamp();
                 } else if (connPtr->IsDisconnected()) {
                     spdlog::info("[{}]:Client {} Disconnected", name, connPtr->remote_addr());
                     tcpConnPtr = nullptr;
@@ -86,6 +87,9 @@ namespace PiRPC {
                 MsgPretreater::getInstance().stream2Package(buffer, [this, connPtr](Buffer *buf) {
                     onPackageReceived(connPtr, buf);
                 });
+            });
+            loop->RunEvery(evpp::Duration(INTERVAL / 1000.0), [this]() {
+                checkHeartbeat();
             });
         }
 
@@ -104,7 +108,7 @@ namespace PiRPC {
         }
 
         void send(const void *data, size_t len) {
-            if (tcpConnPtr) {
+            if (tcpConnPtr && tcpConnPtr->IsConnected()) {
                 Buffer buffer;
                 buffer.AppendInt32(len);
                 buffer.Append(data, len);
@@ -118,6 +122,8 @@ namespace PiRPC {
         }
 
         void onPackageReceived(const TCPConnPtr &connPtr, Buffer *buf);
+
+        void checkHeartbeat();
 
         void release();
 
