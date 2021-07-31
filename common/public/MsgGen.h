@@ -9,6 +9,7 @@
 
 #include "Snowflak.h"
 
+#define TYPE_HEARTBEAT 0
 #define TYPE_CAMERA_CTRL 1
 #define TYPE_SERVO_CTRL 2
 #define TYPE_MOTOR_CTRL 3
@@ -41,6 +42,10 @@ namespace PiRPC {
 
         static std::string servo(int servo, int delta) {
             return msg(TYPE_SERVO_CTRL, format(BASE_SERVO_MOTOR_MSG_FORMAT, servo, delta));
+        }
+
+        static std::string heartbeat() {
+            return msg(TYPE_HEARTBEAT, "\"\"");
         }
 
         static std::string motor(int key) {

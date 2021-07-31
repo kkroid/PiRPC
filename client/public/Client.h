@@ -14,6 +14,7 @@
 #include <utility>
 #include "PiRPCCallbacks.h"
 #include "Snowflak.h"
+#include "MsgGen.h"
 
 
 namespace PiRPC {
@@ -68,7 +69,17 @@ namespace PiRPC {
 
         void disconnect();
 
-        void Send(const void *d, size_t dlen);
+        void Send(const void *d, size_t dlen) {
+            if (client && client->conn()->IsConnected()) {
+                evpp::Buffer buffer;
+                buffer.AppendInt32(dlen);
+                buffer.Append(d, dlen);
+                client->conn()->Send(&buffer);
+                if (_heartbeat) {
+                    refreshHeartbeat();
+                }
+            }
+        }
 
         void Send(const char *s) {
             Send(s, strlen(s));
@@ -86,18 +97,15 @@ namespace PiRPC {
         }
 
         void heartbeat() {
-            if (client && client->conn()->IsConnected()) {
-                UInt64 currentTime = Snowflake::GetTimeStamp();
-                UInt64 delta = currentTime - lastHeartbeatTime;
-                spdlog::trace("Current heartbeat:{}", delta);
-                if (delta < INTERVAL * 1000) {
-                    spdlog::trace("Ignore current heartbeat");
-                    return;
-                }
-                lastHeartbeatTime = currentTime;
-                client->conn()->Send("");
-                spdlog::info("发送心跳包");
+            UInt64 currentTime = Snowflake::GetTimeStamp();
+            UInt64 delta = currentTime - lastHeartbeatTime;
+            spdlog::trace("Current heartbeat:{}", delta);
+            if (delta < INTERVAL * 1000) {
+                spdlog::trace("Ignore current heartbeat");
+                return;
             }
+            Send(MsgGen::heartbeat());
+            spdlog::info("发送心跳包");
         }
     };
 }

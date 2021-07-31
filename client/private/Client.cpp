@@ -27,18 +27,6 @@ namespace PiRPC {
         });
     }
 
-    void Client::Send(const void *d, size_t dlen) {
-        if (client && client->conn()->IsConnected()) {
-            evpp::Buffer buffer;
-            buffer.AppendInt32(dlen);
-            buffer.Append(d, dlen);
-            client->conn()->Send(&buffer);
-            if (_heartbeat) {
-                refreshHeartbeat();
-            }
-        }
-    }
-
     void Client::connect() {
         client->Connect();
         client->set_auto_reconnect(true);
