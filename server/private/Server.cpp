@@ -31,11 +31,11 @@ namespace PiRPC {
 
     void Server::checkHeartbeat() {
         UInt64 currentTime = Snowflake::GetTimeStamp();
-        for (auto it = _connectionMap.begin(); it != _connectionMap.end(); it++) {
-            UInt64 lastMsgTime = it->second;
+        for (auto & it : _connectionMap) {
+            UInt64 lastMsgTime = it.second;
             UInt64 delta = currentTime - lastMsgTime;
             if (delta > TIMEOUT) {
-                TCPConnPtr connPtr = server->GetConnPtrById(it->first);
+                TCPConnPtr connPtr = server->GetConnPtrById(it.first);
                 if (connPtr) {
                     if (_onHeartbeatTimeout) {
                         _onHeartbeatTimeout(connPtr);

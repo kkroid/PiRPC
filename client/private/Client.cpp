@@ -3,28 +3,37 @@
 //
 #include "Client.h"
 #include <utility>
+#include "json.hpp"
+
+using namespace nlohmann;
+using namespace evpp;
 
 namespace PiRPC {
-    void Client::init(std::string address, std::string clientName, bool heartbeat_) {
+    void Client::init(std::string address, std::string clientName) {
         addr = std::move(address);
         name = std::move(clientName);
-        loop = new evpp::EventLoop();
-        client = new evpp::TCPClient(loop, addr, name);
-        _heartbeat = heartbeat_;
-        client->SetConnectionCallback([this](const evpp::TCPConnPtr &connPtr) {
+        loop = new EventLoop();
+        client = new TCPClient(loop, addr, name);
+        client->SetConnectionCallback([this](const TCPConnPtr &connPtr) {
             spdlog::info("{} connection status:{}", client->name(), connPtr->status());
             if (_onConnectionChanged) {
                 _onConnectionChanged(connPtr->status());
             }
-            if (_heartbeat && connPtr->IsConnected()) {
-                loop->RunEvery(evpp::Duration(INTERVAL), [this]() {
-                    heartbeat();
-                });
-            }
+            loop->RunEvery(Duration(INTERVAL), [this]() {
+                heartbeat();
+            });
         });
-        client->SetMessageCallback([this](const evpp::TCPConnPtr &connPtr, evpp::Buffer *buffer) {
-            Stream2Package::Do(_onNewMsgReceived, buffer);
+        client->SetMessageCallback([this](const TCPConnPtr &connPtr, Buffer *buffer) {
+            MsgPretreater::getInstance().stream2Package(buffer, [this, connPtr](Buffer *buf) {
+                onPackageReceived(connPtr, buf);
+            });
         });
+    }
+
+    void Client::onPackageReceived(const evpp::TCPConnPtr &connPtr, evpp::Buffer *buf) {
+        if (_onNewMsgReceived) {
+            _onNewMsgReceived(buf->data(), buf->size());
+        }
     }
 
     void Client::connect() {

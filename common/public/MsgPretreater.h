@@ -27,10 +27,6 @@ namespace PiRPC {
             return instance;
         }
 
-        void pretreat(const evpp::TCPConnPtr &connPtr, evpp::Buffer *buffer) {
-
-        }
-
         void stream2Package(evpp::Buffer *buffer, const OnPackageReceived &onPackageReceived) {
             if (buffer->size() < HEADER_SIZE) {
                 spdlog::warn("收到的数据比头部还小，等待。。。");

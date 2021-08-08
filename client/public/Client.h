@@ -10,12 +10,13 @@
 #include <buffer.h>
 #include <event_loop.h>
 #include <tcp_conn.h>
-#include "Stream2Package.h"
 #include <utility>
 #include "PiRPCCallbacks.h"
 #include "Snowflake.h"
 #include "MsgGen.h"
+#include "MsgPretreater.h"
 
+using namespace evpp;
 
 namespace PiRPC {
     class Client {
@@ -27,7 +28,6 @@ namespace PiRPC {
         evpp::EventLoop *loop = nullptr;
         PiRPC::OnNewMsgReceived _onNewMsgReceived = nullptr;
         PiRPC::OnConnectionChanged _onConnectionChanged = nullptr;
-        bool _heartbeat = false;
         UInt64 lastHeartbeatTime = 0UL;
     public:
 
@@ -55,7 +55,7 @@ namespace PiRPC {
         // 拒绝拷贝赋值
         Client &operator=(const Client &rhs) = delete;
 
-        void init(std::string address, std::string clientName, bool heartbeat_ = false);
+        void init(std::string address, std::string clientName);
 
         void setOnConnectionChangedCallback(const PiRPC::OnConnectionChanged &onConnectionChanged) {
             _onConnectionChanged = onConnectionChanged;
@@ -64,6 +64,8 @@ namespace PiRPC {
         void setOnNewMsgReceivedCallback(const PiRPC::OnNewMsgReceived &onNewMsgReceived) {
             _onNewMsgReceived = onNewMsgReceived;
         }
+
+        void onPackageReceived(const TCPConnPtr &connPtr, Buffer *buf);
 
         void connect();
 
@@ -75,9 +77,7 @@ namespace PiRPC {
                 buffer.AppendInt32(dlen);
                 buffer.Append(d, dlen);
                 client->conn()->Send(&buffer);
-                if (_heartbeat) {
-                    refreshHeartbeat();
-                }
+                refreshHeartbeat();
             }
         }
 
