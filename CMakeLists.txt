@@ -3,14 +3,28 @@ cmake_minimum_required(VERSION 3.5)
 project(PiRPC LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
+set(USE_EVPP_CODE 0)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/evpp/public)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
 file(GLOB pirpc_s_srcs ${CMAKE_CURRENT_LIST_DIR}/server/*.cpp)
 file(GLOB pirpc_c_srcs ${CMAKE_CURRENT_LIST_DIR}/client/*.cpp)
 
-add_subdirectory(evpp)
-
 add_library(PiRPC SHARED ${pirpc_s_srcs} ${pirpc_c_srcs})
-target_link_libraries(PiRPC
-        evpp)
+
+if (${USE_EVPP_CODE})
+    add_subdirectory(evpp)
+    target_link_libraries(PiRPC evpp)
+else()
+    add_library(evpp SHARED IMPORTED)
+    add_library(libevent SHARED IMPORTED)
+    set(EVPP_DIR ${CMAKE_CURRENT_LIST_DIR}/evpp)
+    IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
+        set_target_properties(evpp PROPERTIES IMPORTED_LOCATION ${EVPP_DIR}/lib/pi/libevpp.so)
+        set_target_properties(libevent PROPERTIES IMPORTED_LOCATION ${EVPP_DIR}/libevent/lib/pi/libevent-2.1.so.7.0.1)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+        set_target_properties(evpp PROPERTIES IMPORTED_LOCATION ${EVPP_DIR}/lib/macos/libevpp.dylib)
+        set_target_properties(libevent PROPERTIES IMPORTED_LOCATION ${EVPP_DIR}/libevent/lib/macos/libevent-2.1.7.dylib)
+    ENDIF()
+    target_link_libraries(PiRPC evpp libevent)
+endif()
