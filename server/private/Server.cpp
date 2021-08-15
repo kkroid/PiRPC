@@ -40,21 +40,15 @@ namespace PiRPC {
                     if (_onHeartbeatTimeout) {
                         _onHeartbeatTimeout(connPtr);
                     } else {
-                        // TODO 释放死链接
-                        // connPtr->loop()->RunInLoop([this, connPtr]() {
-                        //     spdlog::info("[checkHeartbeat]:{} timeout, close", connPtr->remote_addr());
-                        //     if (connPtr->IsConnected()) {
-                        //         connPtr->Close();
-                        //     }
-                        // });
-                        spdlog::info("[checkHeartbeat]:{} timeout, close", connPtr->remote_addr());
-                        // if (tcpConnPtr && tcpConnPtr->IsConnected()) {
-                        //     if (connPtr->id() == tcpConnPtr->id()) {
-                        //         tcpConnPtr = nullptr;
-                        //     }
-                        // }
-                        // connPtr = nullptr;
-                        // _connectionMap.erase(it->first);
+                        // 释放死链接
+                        connPtr->loop()->RunInLoop([this, connPtr, it]() {
+                            spdlog::info("[checkHeartbeat]:{} timeout", connPtr->remote_addr());
+                            if (connPtr && connPtr->IsConnected()) {
+                                spdlog::info("[checkHeartbeat]:close {}", connPtr->remote_addr());
+                                connPtr->Close();
+                                _connectionMap.erase(it.first);
+                            }
+                        });
                     }
                 }
             }
