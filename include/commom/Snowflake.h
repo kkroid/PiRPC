@@ -12,8 +12,8 @@
 #include <iostream>
 
 //#define SNOWFLAKE_ID_WORKER_NO_LOCK
-typedef unsigned int UInt;
-typedef long long unsigned int UInt64;
+typedef uint32_t UInt;
+typedef uint64_t UInt64;
 
 #ifdef SNOWFLAKE_ID_WORKER_NO_LOCK
 typedef std::atomic<UInt> AtomicUInt;

@@ -14,7 +14,7 @@
 #define TYPE_SERVO_CTRL 2
 #define TYPE_MOTOR_CTRL 3
 
-#define BASE_MSG_FORMAT R"({"tid":%llu,"type":%d,"payload":%s})"
+#define BASE_MSG_FORMAT R"({"tid":"%llu","type":%d,"payload":%s})"
 #define BASE_SERVO_MOTOR_MSG_FORMAT R"({"servo":%d,"delta":%d})"
 #define BASE_CAMERA_MSG_FORMAT R"({"cmd":%d,"param":%d})"
 

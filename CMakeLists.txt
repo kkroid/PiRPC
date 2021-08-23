@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(PiRPC LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
-set(USE_EVPP_CODE 0)
+set(USE_EVPP_CODE 1)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/evpp/public)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
