@@ -9,13 +9,21 @@
 #include "spdlog/spdlog.h"
 #include <evpp/buffer.h>
 #include "commom/MsgGen.h"
+#include "commom/Snowflake.h"
+
 
 namespace PiRPC {
     class MessageProcessor {
+    protected:
+        std::map<uint64_t/*the id of the connection*/, UInt64> _connectionMap;
     public:
         virtual void process(nlohmann::json msg) = 0;
 
-        static void processUnknownMessage(const std::string& msg, const std::string &error) {
+        void updateConnectionMap(uint64_t id) {
+            _connectionMap[id] = Snowflake::GetTimeStamp();
+        }
+
+        static void processUnknownMessage(const std::string &msg, const std::string &error) {
             spdlog::warn("processUnknownMessage error:{}, msg:{}", error, msg);
         }
     };

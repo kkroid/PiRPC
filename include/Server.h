@@ -18,10 +18,6 @@
 #include "commom/MessageDispatcher.h"
 #include "commom/Config.h"
 
-#define ADDR_MSG_SERVER "0.0.0.0:5556"
-#define ADDR_VIDEO_SERVER "0.0.0.0:5555"
-#define NAME_MSG_SERVER "MsgServer"
-#define NAME_VIDEO_SERVER "VideoServer"
 #define THREAD_NUM 2
 
 using namespace evpp;
@@ -30,8 +26,8 @@ namespace PiRPC {
     class Server {
     private:
         int threadNum = THREAD_NUM;
-        std::string addr = ADDR_MSG_SERVER;
-        std::string name = NAME_MSG_SERVER;
+        std::string addr = "0.0.0.0:5556";
+        std::string name = "MsgServer";
         TCPServer *server = nullptr;
         EventLoop *loop = nullptr;
         std::shared_ptr<TCPConn> tcpConnPtr = nullptr;
