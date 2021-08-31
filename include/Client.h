@@ -67,7 +67,7 @@ namespace PiRPC {
 
         void onPackageReceived(const TCPConnPtr &connPtr, Buffer *buf);
 
-        void connect();
+        void connect(bool autoReconnect = true);
 
         void disconnect();
 

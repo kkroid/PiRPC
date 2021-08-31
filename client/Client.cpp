@@ -36,9 +36,9 @@ namespace PiRPC {
         }
     }
 
-    void Client::connect() {
+    void Client::connect(bool autoReconnect) {
         client->Connect();
-        client->set_auto_reconnect(true);
+        client->set_auto_reconnect(autoReconnect);
         loop->Run();
     }
 
